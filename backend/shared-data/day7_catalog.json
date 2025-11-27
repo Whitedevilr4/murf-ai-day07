@@ -1,0 +1,146 @@
+{
+  "store_name": "QuickKart Fresh",
+  "currency": "INR",
+  "items": [
+    {
+      "id": "bread_wheat_loaf",
+      "name": "Whole Wheat Bread",
+      "category": "groceries",
+      "price": 45,
+      "brand": "HealthyBake",
+      "size": "400 g",
+      "unit": "loaf",
+      "tags": ["vegan", "sandwich", "breakfast"]
+    },
+    {
+      "id": "bread_white_loaf",
+      "name": "White Bread",
+      "category": "groceries",
+      "price": 40,
+      "brand": "SoftLoaf",
+      "size": "400 g",
+      "unit": "loaf",
+      "tags": ["sandwich", "breakfast"]
+    },
+    {
+      "id": "eggs_12pack",
+      "name": "Farm Eggs",
+      "category": "groceries",
+      "price": 80,
+      "brand": "GoldenHen",
+      "size": "12 pcs",
+      "unit": "pack",
+      "tags": ["protein", "breakfast"]
+    },
+    {
+      "id": "milk_1l",
+      "name": "Toned Milk",
+      "category": "groceries",
+      "price": 60,
+      "brand": "MilkyWay",
+      "size": "1 L",
+      "unit": "pack",
+      "tags": ["breakfast", "tea", "coffee"]
+    },
+    {
+      "id": "peanut_butter_large",
+      "name": "Peanut Butter (Crunchy)",
+      "category": "groceries",
+      "price": 220,
+      "brand": "NuttySpread",
+      "size": "500 g",
+      "unit": "jar",
+      "tags": ["vegan", "sandwich", "protein"]
+    },
+    {
+      "id": "pasta_500g",
+      "name": "Penne Pasta",
+      "category": "groceries",
+      "price": 90,
+      "brand": "PastaBella",
+      "size": "500 g",
+      "unit": "pack",
+      "tags": ["pasta", "italian"]
+    },
+    {
+      "id": "pasta_sauce_jar",
+      "name": "Tomato Basil Pasta Sauce",
+      "category": "groceries",
+      "price": 150,
+      "brand": "Saucy",
+      "size": "350 g",
+      "unit": "jar",
+      "tags": ["pasta", "sauce", "italian"]
+    },
+    {
+      "id": "cheese_slice_10",
+      "name": "Cheese Slices",
+      "category": "groceries",
+      "price": 110,
+      "brand": "DairyBest",
+      "size": "10 slices",
+      "unit": "pack",
+      "tags": ["sandwich", "cheese"]
+    },
+    {
+      "id": "chips_masala",
+      "name": "Masala Potato Chips",
+      "category": "snacks",
+      "price": 35,
+      "brand": "CrispyBite",
+      "size": "80 g",
+      "unit": "pack",
+      "tags": ["snack"]
+    },
+    {
+      "id": "chocolate_bar",
+      "name": "Dark Chocolate Bar",
+      "category": "snacks",
+      "price": 60,
+      "brand": "ChocoNight",
+      "size": "50 g",
+      "unit": "bar",
+      "tags": ["snack", "dessert"]
+    },
+    {
+      "id": "veg_pizza_margherita",
+      "name": "Veg Margherita Pizza",
+      "category": "prepared_food",
+      "price": 299,
+      "brand": "OvenFresh",
+      "size": "9 inch",
+      "unit": "pizza",
+      "tags": ["vegetarian", "prepared"]
+    },
+    {
+      "id": "veg_sandwich_club",
+      "name": "Veg Club Sandwich",
+      "category": "prepared_food",
+      "price": 180,
+      "brand": "CafeBox",
+      "size": "1 portion",
+      "unit": "box",
+      "tags": ["vegetarian", "snack", "lunch"]
+    },
+    {
+      "id": "cola_1l",
+      "name": "Cola Soda Drink",
+      "category": "beverages",
+      "price": 70,
+      "brand": "FizzUp",
+      "size": "1 L",
+      "unit": "bottle",
+      "tags": ["cold_drink"]
+    },
+    {
+      "id": "juice_mixedfruit_1l",
+      "name": "Mixed Fruit Juice",
+      "category": "beverages",
+      "price": 95,
+      "brand": "FreshSip",
+      "size": "1 L",
+      "unit": "pack",
+      "tags": ["juice", "breakfast"]
+    }
+  ]
+}

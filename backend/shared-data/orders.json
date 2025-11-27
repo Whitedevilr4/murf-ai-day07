@@ -1,0 +1,88 @@
+[
+  {
+    "order_id": "ORD-1",
+    "created_at": 1764259362.4819984,
+    "status": "out for delivery",
+    "items": [
+      {
+        "item_id": "eggs_12pack",
+        "name": "Farm Eggs",
+        "quantity": 12.0,
+        "unit_price": 80
+      },
+      {
+        "item_id": "milk_1l",
+        "name": "Toned Milk",
+        "quantity": 1.0,
+        "unit_price": 60
+      }
+    ],
+    "total": 1020.0
+  },
+  {
+    "order_id": "ORD-2",
+    "created_at": 1764259665.1114745,
+    "status": "out for delivery",
+    "items": [
+      {
+        "item_id": "chocolate_bar",
+        "name": "Dark Chocolate Bar",
+        "quantity": 1.0,
+        "unit_price": 60
+      }
+    ],
+    "total": 60.0
+  },
+  {
+    "order_id": "ORD-3",
+    "created_at": 1764259944.8939812,
+    "status": "preparing",
+    "items": [
+      {
+        "item_id": "chocolate_bar",
+        "name": "Dark Chocolate Bar",
+        "quantity": 2.0,
+        "unit_price": 60
+      },
+      {
+        "item_id": "chips_masala",
+        "name": "Masala Potato Chips",
+        "quantity": 5.0,
+        "unit_price": 35
+      },
+      {
+        "item_id": "veg_sandwich_club",
+        "name": "Veg Club Sandwich",
+        "quantity": 7.0,
+        "unit_price": 180
+      }
+    ],
+    "total": 1555.0
+  },
+  {
+    "order_id": "ORD-4",
+    "created_at": 1764260371.1571288,
+    "status": "confirmed",
+    "items": [
+      {
+        "item_id": "chips_masala",
+        "name": "Masala Potato Chips",
+        "quantity": 5.0,
+        "unit_price": 35
+      },
+      {
+        "item_id": "chocolate_bar",
+        "name": "Dark Chocolate Bar",
+        "quantity": 2.0,
+        "unit_price": 60
+      },
+      {
+        "item_id": "veg_sandwich_club",
+        "name": "Veg Club Sandwich",
+        "quantity": 3.0,
+        "unit_price": 180
+      }
+    ],
+    "total": 835.0
+  }
+]
