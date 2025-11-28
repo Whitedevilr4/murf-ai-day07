@@ -55,6 +55,8 @@ if not ORDERS_PATH.exists():
 # -----------------------------------------------------------
 
 def load_catalog():
+    if not CATALOG_PATH.exists():
+        return {"items": []}
     with open(CATALOG_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -70,9 +72,9 @@ def save_orders(orders):
         json.dump(orders, f, indent=2)
 
 def find_item(name, catalog):
-    name = name.lower().strip()
-    for item in catalog["items"]:
-        if name in item["name"].lower():
+    name = (name or "").lower().strip()
+    for item in catalog.get("items", []):
+        if name in item.get("name", "").lower():
             return item
     return None
 
@@ -125,6 +127,7 @@ You can:
 - Show cart
 - Place order (save JSON)
 - Track order status
+- Set customer details (name, address, phone)
 
 Rules:
 - ALWAYS use tools for cart/order operations.
@@ -148,14 +151,17 @@ Rules:
 
         for c in cart:
             if c["item_id"] == item["id"]:
-                c["quantity"] += quantity
+                try:
+                    c["quantity"] = float(c["quantity"]) + float(quantity)
+                except:
+                    c["quantity"] = c.get("quantity", 0) + quantity
                 break
         else:
             cart.append({
                 "item_id": item["id"],
                 "name": item["name"],
                 "quantity": quantity,
-                "unit_price": item["price"]
+                "unit_price": item.get("price", 0)
             })
 
         session.userdata["cart"] = cart
@@ -198,7 +204,7 @@ Rules:
         return "Item not found."
 
     # ---------------------------------------------------
-    # Tool: Show cart
+    # Tool: Show cart (detailed)
     # ---------------------------------------------------
     @function_tool
     async def show_cart(self):
@@ -212,15 +218,58 @@ Rules:
         lines = []
 
         for c in cart:
-            line_total = c["unit_price"] * c["quantity"]
+            try:
+                line_total = float(c.get("unit_price", 0)) * float(c.get("quantity", 0))
+            except:
+                line_total = 0
             total += line_total
-            lines.append(f"{c['quantity']} x {c['name']} = ₹{line_total}")
+            # show integer quantity as int
+            qty = int(c["quantity"]) if isinstance(c["quantity"], (int, float)) and float(c["quantity"]).is_integer() else c["quantity"]
+            lines.append(f"{qty} x {c['name']} = ₹{line_total}")
 
         lines.append(f"Total = ₹{total}")
         return "\n".join(lines)
 
     # ---------------------------------------------------
-    # Tool: Recipe ingredients
+    # Tool: What on the list (simple names)
+    # ---------------------------------------------------
+    @function_tool
+    async def what_on_list(self):
+        session = self.session
+        cart = session.userdata.get("cart", [])
+        if not cart:
+            return "Your cart is empty."
+        names = []
+        for c in cart:
+            qty = int(c["quantity"]) if isinstance(c["quantity"], (int, float)) and float(c["quantity"]).is_integer() else c["quantity"]
+            names.append(f"{qty} x {c['name']}")
+        return "Currently in your cart: " + ", ".join(names)
+
+    # ---------------------------------------------------
+    # Tool: List catalog or get item details
+    # ---------------------------------------------------
+    @function_tool
+    async def list_catalog(self, query: Optional[str] = None):
+        catalog = load_catalog()
+        items = catalog.get("items", [])
+        if not items:
+            return "Catalog is currently empty."
+
+        if query:
+            ref = find_item(query, catalog)
+            if not ref:
+                return f"No items matching '{query}' found."
+            # show basic details for the item
+            return f"{ref.get('name','unknown')} — ₹{ref.get('price', 'N/A')} (id: {ref.get('id')})"
+        # otherwise return a short list of item names
+        names = [it.get("name", "unknown") for it in items]
+        # limit output if very large
+        if len(names) > 30:
+            names = names[:30] + ["..."]
+        return "Available: " + ", ".join(names)
+
+    # ---------------------------------------------------
+    # Tool: Recipe ingredients (improved matching + suggestions)
     # ---------------------------------------------------
     @function_tool
     async def add_recipe(self, recipe: str):
@@ -228,36 +277,95 @@ Rules:
         catalog = load_catalog()
         cart = session.userdata.get("cart", [])
 
-        recipe = recipe.lower().strip()
-        if recipe not in RECIPES:
-            return "I don't have this recipe yet."
+        if not recipe or not recipe.strip():
+            return "Which recipe would you like to add? Say something like 'peanut butter sandwich'."
 
+        recipe_q = recipe.lower().strip()
+
+        # 1) exact match
+        if recipe_q in RECIPES:
+            matched = recipe_q
+        else:
+            # 2) substring match (recipe name contains query or query contains recipe name)
+            matched = None
+            for rname in RECIPES.keys():
+                if recipe_q in rname or rname in recipe_q:
+                    matched = rname
+                    break
+
+        # 3) if still no match, provide suggestions
+        if not matched:
+            available = list(RECIPES.keys())
+            suggestions = ", ".join(available[:6]) if available else "no recipes available"
+            return f"I don't have that recipe. Available recipes: {suggestions}. Which one would you like?"
+
+        # proceed to add ingredients for matched recipe
         added = []
-
-        for item in RECIPES[recipe]["items"]:
+        for item in RECIPES[matched]["items"]:
             ref = find_item(item["name"], catalog)
             if not ref:
+                # continue silently if catalog missing the ingredient
                 continue
 
+            # find existing cart item
             for c in cart:
                 if c["item_id"] == ref["id"]:
-                    c["quantity"] += item["quantity"]
+                    try:
+                        c["quantity"] = float(c.get("quantity", 0)) + float(item.get("quantity", 1))
+                    except:
+                        c["quantity"] = item.get("quantity", 1)
                     break
             else:
                 cart.append({
                     "item_id": ref["id"],
                     "name": ref["name"],
-                    "quantity": item["quantity"],
-                    "unit_price": ref["price"]
+                    "quantity": item.get("quantity", 1),
+                    "unit_price": ref.get("price", 0)
                 })
 
             added.append(ref["name"])
 
         session.userdata["cart"] = cart
-        return f"Added ingredients for {recipe}: {', '.join(added)}."
+        if not added:
+            return f"I tried adding ingredients for '{matched}', but none of the recipe items were found in the catalog."
+        return f"Added ingredients for '{matched}': {', '.join(added)}."
 
     # ---------------------------------------------------
-    # Tool: Place order
+    # Tool: List available recipes
+    # ---------------------------------------------------
+    @function_tool
+    async def list_recipes(self):
+        if not RECIPES:
+            return "No recipes available right now."
+        names = list(RECIPES.keys())
+        return "Available recipes: " + ", ".join(names)
+
+    # ---------------------------------------------------
+    # Tool: Set customer info (name, address, phone)
+    # ---------------------------------------------------
+    @function_tool
+    async def set_customer_info(self, name: Optional[str] = None, address: Optional[str] = None, phone: Optional[str] = None):
+        """
+        Provide any of name, address, phone. Only the provided fields are updated.
+        """
+        session = self.session
+        cust = session.userdata.get("customer", {"name": None, "address": None, "phone": None})
+
+        if name:
+            cust["name"] = name.strip()
+        if address:
+            cust["address"] = address.strip()
+        if phone:
+            cust["phone"] = phone.strip()
+
+        session.userdata["customer"] = cust
+        missing = [k for k, v in cust.items() if not v]
+        if missing:
+            return f"Saved details. Still missing: {', '.join(missing)}. Please provide them before placing order."
+        return f"Saved customer details: {cust['name']}, {cust['address']}, {cust['phone']}."
+
+    # ---------------------------------------------------
+    # Tool: Place order (finish)
     # ---------------------------------------------------
     @function_tool
     async def finish_order(self):
@@ -267,8 +375,18 @@ Rules:
         if not cart:
             return "Your cart is empty."
 
+        customer = session.userdata.get("customer", {"name": None, "address": None, "phone": None})
+        missing = [k for k, v in customer.items() if not v]
+        if missing:
+            return f"Can't place order — please provide customer {', '.join(missing)} using set_customer_info."
+
         orders = load_orders()
-        total = sum(c["unit_price"] * c["quantity"] for c in cart)
+        total = 0
+        for c in cart:
+            try:
+                total += float(c.get("unit_price", 0)) * float(c.get("quantity", 0))
+            except:
+                pass
         order_id = next_order_id(orders)
 
         order = {
@@ -277,13 +395,18 @@ Rules:
             "status": "confirmed",
             "items": cart,
             "total": total,
+            "customer": {
+                "name": customer["name"],
+                "address": customer["address"],
+                "phone": customer["phone"],
+            }
         }
 
         orders.append(order)
         save_orders(orders)
 
         session.userdata["cart"] = []  # clear cart
-
+        # keep customer info so they don't have to re-enter next time
         return f"Order {order_id} placed! Total ₹{total}. You can track it anytime."
 
     # ---------------------------------------------------
@@ -316,7 +439,11 @@ Rules:
         order["status"] = status
         save_orders(orders)
 
-        return f"Order {order['order_id']} is currently {status}."
+        cust = order.get("customer", {})
+        cust_summary = ""
+        if cust:
+            cust_summary = f" for {cust.get('name','unknown')} to {cust.get('address','unknown')} (☎ {cust.get('phone','unknown')})"
+        return f"Order {order['order_id']} is currently {status}{cust_summary}."
 
 
 # -----------------------------------------------------------
@@ -341,7 +468,7 @@ async def entrypoint(ctx: JobContext):
         turn_detection=MultilingualModel(),
         vad=ctx.proc.userdata["vad"],
         preemptive_generation=True,
-        userdata={"cart": []},
+        userdata={"cart": [], "customer": {"name": None, "address": None, "phone": None}},
     )
 
     usage = metrics.UsageCollector()
